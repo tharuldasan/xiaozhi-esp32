@@ -1,0 +1,9 @@
+{
+    "type": "tappy-s3",
+    "target": "esp32s3",
+    "builds": [
+        {
+            "name": "tappy-s3"
+        }
+    ]
+}
