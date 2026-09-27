@@ -32,13 +32,13 @@ public:
             AUDIO_INPUT_SAMPLE_RATE,
             AUDIO_OUTPUT_SAMPLE_RATE,
 
-            // MAX98357A
+            // MAX98357A speaker — RIGHT channel
             AUDIO_I2S_SPK_GPIO_BCLK,
             AUDIO_I2S_SPK_GPIO_LRCK,
             AUDIO_I2S_SPK_GPIO_DOUT,
             I2S_STD_SLOT_RIGHT,
 
-            // INMP441
+            // INMP441 microphone — LEFT channel
             AUDIO_I2S_MIC_GPIO_SCK,
             AUDIO_I2S_MIC_GPIO_WS,
             AUDIO_I2S_MIC_GPIO_DIN,
