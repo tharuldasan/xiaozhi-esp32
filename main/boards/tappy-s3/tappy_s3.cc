@@ -36,11 +36,13 @@ public:
             AUDIO_I2S_SPK_GPIO_BCLK,
             AUDIO_I2S_SPK_GPIO_LRCK,
             AUDIO_I2S_SPK_GPIO_DOUT,
+            I2S_STD_SLOT_RIGHT,
 
             // INMP441
             AUDIO_I2S_MIC_GPIO_SCK,
             AUDIO_I2S_MIC_GPIO_WS,
-            AUDIO_I2S_MIC_GPIO_DIN
+            AUDIO_I2S_MIC_GPIO_DIN,
+            I2S_STD_SLOT_LEFT
         );
 
         return &audio_codec;
