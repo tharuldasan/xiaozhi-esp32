@@ -1,11 +1,7 @@
-name: Build Boards
+name: Build TAPPY S3
 
 on:
   push:
-    branches:
-      - main
-      - ci/*
-  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -14,15 +10,12 @@ permissions:
   contents: read
 
 jobs:
-  prepare:
-    name: Determine variants to build
+  build:
+    name: Build TAPPY-S3 Firmware
     runs-on: ubuntu-latest
 
     container:
       image: espressif/idf:v6.1
-
-    outputs:
-      variants: ${{ steps.select.outputs.variants }}
 
     steps:
       - name: Checkout
@@ -34,54 +27,31 @@ jobs:
         run: |
           python -m unittest discover -s scripts/tests -v
 
-      - name: Select variants
-        id: select
-        shell: bash
-        run: |
-          python scripts/build.py --list-boards --json > variants.json
-
-          echo "Detected boards:"
-          cat variants.json
-
-          {
-            echo "variants<<EOF"
-            cat variants.json
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-  build:
-    name: Build ${{ matrix.full_name }}
-    needs: prepare
-
-    if: ${{ needs.prepare.outputs.variants != '[]' }}
-
-    strategy:
-      fail-fast: false
-
-      matrix:
-        include: ${{ fromJson(needs.prepare.outputs.variants) }}
-
-    runs-on: ubuntu-latest
-
-    container:
-      image: espressif/idf:v6.1
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build firmware
+      - name: Build TAPPY-S3
         shell: bash
         run: |
           source $IDF_PATH/export.sh
 
-          python scripts/build.py \
-            ${{ matrix.board }} \
-            --name ${{ matrix.name }}
+          echo "======================================"
+          echo "       BUILDING TAPPY ESP32-S3"
+          echo "======================================"
 
-      - name: Upload firmware
+          python scripts/build.py tappy-s3 --name tappy-s3
+
+      - name: Show build files
+        shell: bash
+        run: |
+          echo "======================================"
+          echo "BUILD OUTPUT"
+          echo "======================================"
+
+          find build -maxdepth 2 -type f -print
+
+      - name: Upload TAPPY firmware
         uses: actions/upload-artifact@v4
         with:
-          name: xiaozhi-${{ matrix.full_name }}
-          path: build/merged-binary.bin
+          name: TAPPY-S3-Firmware
+          path: |
+            build/merged-binary.bin
+            build/*.bin
           if-no-files-found: error
