@@ -907,7 +907,11 @@ void Application::HandleStopListeningEvent() {
         if (protocol_) {
             protocol_->SendStopListening();
         }
-        SetDeviceState(kDeviceStateIdle);
+        // Keep the processing animation visible briefly, then return to Ready.
+        Schedule([this]() {
+            vTaskDelay(pdMS_TO_TICKS(120));
+            SetDeviceState(kDeviceStateIdle);
+        });
     }
 }
 
