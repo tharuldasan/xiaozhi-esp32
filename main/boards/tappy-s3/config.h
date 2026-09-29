@@ -42,8 +42,8 @@
 #define VOLUME_UP_BUTTON_GPIO   GPIO_NUM_NC
 #define VOLUME_DOWN_BUTTON_GPIO GPIO_NUM_NC
 
-// No onboard LED used for now.
-#define BUILTIN_LED_GPIO GPIO_NUM_NC
+// TAPPY WS2812/NeoPixel status LED: single RGB data line on GPIO 48.
+#define BUILTIN_LED_GPIO GPIO_NUM_48
 
 // ============================================================
 // SSD1306
