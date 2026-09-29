@@ -13,7 +13,8 @@ You should have received a copy of the GNU Affero General Public License along w
 #ifndef _ASYNCTIMER_h
 #define _ASYNCTIMER_h
 
-#include <Arduino.h>
+#include <stdint.h>
+#include <esp_timer.h>
 
 typedef void(*AsyncTimerCallback)();
 
