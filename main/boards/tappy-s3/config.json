@@ -5,9 +5,12 @@
         {
             "name": "tappy-s3",
             "sdkconfig_append": [
+                "CONFIG_LANGUAGE_EN_US=y",
                 "CONFIG_USE_CUSTOM_WAKE_WORD=y",
                 "CONFIG_USE_AFE_WAKE_WORD=n",
+                "CONFIG_USE_ESP_WAKE_WORD=n",
                 "CONFIG_WAKE_WORD_DISABLED=n",
+                "CONFIG_SR_WN_WN9_NIHAOXIAOZHI_TTS=n",
                 "CONFIG_CUSTOM_WAKE_WORD=\"hi tappy\"",
                 "CONFIG_CUSTOM_WAKE_WORD_DISPLAY=\"Hi Tappy\"",
                 "CONFIG_CUSTOM_WAKE_WORD_THRESHOLD=20",
