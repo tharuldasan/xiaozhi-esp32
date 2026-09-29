@@ -29,7 +29,7 @@ void AsyncTimer::Start() {
 }
 
 void AsyncTimer::Reset() {
-	_startTime = millis();
+	_startTime = now_now_millis();
 }
 
 void AsyncTimer::Stop() {
@@ -40,7 +40,7 @@ bool AsyncTimer::Update() {
 	if (_isActive == false) return false;
 
 	_isExpired = false;
-	if (static_cast<unsigned long>(millis() - _startTime) >= Interval) {
+	if (static_cast<unsigned long>(now_now_millis() - _startTime) >= Interval) {
 		_isExpired = true;
 		if (OnFinish != nullptr) OnFinish();
 		Reset();
@@ -57,11 +57,11 @@ unsigned long AsyncTimer::GetStartTime() {
 }
 
 unsigned long AsyncTimer::GetElapsedTime() {
-	return millis() - _startTime;
+	return now_now_millis() - _startTime;
 }
 
 unsigned long AsyncTimer::GetRemainingTime() {
-	return Interval - millis() + _startTime;
+	return Interval - now_now_millis() + _startTime;
 }
 
 bool AsyncTimer::IsActive() const {
