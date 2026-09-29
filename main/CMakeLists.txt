@@ -41,9 +41,21 @@ set(SOURCES "audio/audio_codec.cc"
             "device_state_machine.cc"
             "assets.cc"
             "main.cc"
+            "tappy_face.cc"
+            "components/esp32-eyes/AsyncTimer.cpp"
+            "components/esp32-eyes/BlinkAssistant.cpp"
+            "components/esp32-eyes/Eye.cpp"
+            "components/esp32-eyes/EyeBlink.cpp"
+            "components/esp32-eyes/EyeTransformation.cpp"
+            "components/esp32-eyes/EyeTransition.cpp"
+            "components/esp32-eyes/EyeVariation.cpp"
+            "components/esp32-eyes/Face.cpp"
+            "components/esp32-eyes/FaceBehavior.cpp"
+            "components/esp32-eyes/FaceExpression.cpp"
+            "components/esp32-eyes/LookAssistant.cpp"
             )
 
-set(INCLUDE_DIRS "." "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "audio/demuxer" "protocols")
+set(INCLUDE_DIRS "." "components/esp32-eyes" "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "audio/demuxer" "protocols")
 
 # Add board common files
 list(APPEND SOURCES
