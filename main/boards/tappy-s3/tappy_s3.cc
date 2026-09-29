@@ -35,7 +35,7 @@ public:
             AUDIO_I2S_SPK_GPIO_BCLK,
             AUDIO_I2S_SPK_GPIO_LRCK,
             AUDIO_I2S_SPK_GPIO_DOUT,
-            I2S_STD_SLOT_RIGHT,
+            I2S_STD_SLOT_LEFT,
 
             // INMP441 — microphone
             AUDIO_I2S_MIC_GPIO_SCK,
