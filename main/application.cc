@@ -134,7 +134,6 @@ void Application::Initialize() {
                 break;
             }
             case NetworkEvent::Connected: {
-                Board::GetInstance().GetLed()->OnStateChanged();
                 std::string msg = Lang::Strings::CONNECTED_TO;
                 msg += data;
                 display->ShowNotification(msg.c_str(), 30000);
@@ -903,6 +902,7 @@ void Application::HandleStopListeningEvent() {
         return;
     } else if (state == kDeviceStateListening) {
         Board::GetInstance().GetLed()->OnProcessing(true);
+        audio_service_.EnableVoiceProcessing(false);
         audio_service_.PlaySound(Lang::Sounds::OGG_POPUP);
         if (protocol_) {
             protocol_->SendStopListening();
