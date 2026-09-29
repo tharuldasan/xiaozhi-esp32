@@ -4,6 +4,7 @@
 #include "config.h"
 #include "codecs/no_audio_codec.h"
 #include "display.h"
+#include "led/single_led.h"
 
 #define TAG "TappyS3"
 
@@ -25,6 +26,11 @@ public:
 
             app.ToggleChatState();
         });
+    }
+
+    Led* GetLed() override {
+        static SingleLed led(GPIO_NUM_48);
+        return &led;
     }
 
     Display* GetDisplay() override {
