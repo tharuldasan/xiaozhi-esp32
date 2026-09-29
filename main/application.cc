@@ -120,6 +120,7 @@ void Application::Initialize() {
                 xEventGroupSetBits(event_group_, MAIN_EVENT_NETWORK_DISCONNECTED);
                 break;
             case NetworkEvent::Connecting: {
+                Board::GetInstance().GetLed()->OnStateChanged();
                 if (data.empty()) {
                     // Cellular network - registering without carrier info yet
                     display->SetStatus(Lang::Strings::REGISTERING_NETWORK);
@@ -133,6 +134,7 @@ void Application::Initialize() {
                 break;
             }
             case NetworkEvent::Connected: {
+                Board::GetInstance().GetLed()->OnStateChanged();
                 std::string msg = Lang::Strings::CONNECTED_TO;
                 msg += data;
                 display->ShowNotification(msg.c_str(), 30000);
@@ -140,6 +142,7 @@ void Application::Initialize() {
                 break;
             }
             case NetworkEvent::Disconnected:
+                Board::GetInstance().GetLed()->OnWifiLost();
                 xEventGroupSetBits(event_group_, MAIN_EVENT_NETWORK_DISCONNECTED);
                 break;
             case NetworkEvent::WifiConfigModeEnter:
@@ -292,6 +295,7 @@ void Application::Run() {
 
 void Application::HandleNetworkConnectedEvent() {
     ESP_LOGI(TAG, "Network connected");
+    Board::GetInstance().GetLed()->OnStateChanged();
     auto state = GetDeviceState();
 
     if (state == kDeviceStateStarting || state == kDeviceStateWifiConfiguring) {
@@ -318,6 +322,8 @@ void Application::HandleNetworkConnectedEvent() {
 }
 
 void Application::HandleNetworkDisconnectedEvent() {
+    // Physical/network link loss: red status LED.
+    Board::GetInstance().GetLed()->OnWifiLost();
     // Close current conversation when network disconnected
     auto state = GetDeviceState();
     if (state == kDeviceStateNotifying) {
@@ -552,6 +558,8 @@ void Application::InitializeProtocol() {
 
     protocol_->OnNetworkError([this](const std::string& message) {
         last_error_message_ = message;
+        // Keep Wi-Fi loss distinct (red) from a server/protocol failure (yellow).
+        Board::GetInstance().GetLed()->OnServerLost();
         xEventGroupSetBits(event_group_, MAIN_EVENT_ERROR);
     });
 
@@ -894,6 +902,8 @@ void Application::HandleStopListeningEvent() {
         SetDeviceState(kDeviceStateWifiConfiguring);
         return;
     } else if (state == kDeviceStateListening) {
+        Board::GetInstance().GetLed()->OnProcessing(true);
+        audio_service_.PlaySound(Lang::Sounds::OGG_POPUP);
         if (protocol_) {
             protocol_->SendStopListening();
         }
@@ -1082,7 +1092,8 @@ void Application::StartListeningAudio() {
         return;
     }
 
-    // Send the start listening command
+    // Start listening: blue breathing and a compact UI cue.
+    Board::GetInstance().GetLed()->OnStateChanged();
     protocol_->SendStartListening(listening_mode_);
     audio_service_.EnableVoiceProcessing(true);
 
