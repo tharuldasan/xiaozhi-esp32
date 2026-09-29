@@ -12,6 +12,10 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "AsyncTimer.h"
 
+static unsigned long now_now_millis() {
+    return static_cast<unsigned long>(esp_timer_get_time() / 1000ULL);
+}
+
 AsyncTimer::AsyncTimer(unsigned long millisInterval) : AsyncTimer(millisInterval, nullptr) {}
 
 AsyncTimer::AsyncTimer(unsigned long millisInterval, AsyncTimerCallback onFinish) {
