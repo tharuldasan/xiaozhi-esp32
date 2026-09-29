@@ -4,14 +4,17 @@
 class Led {
 public:
     virtual ~Led() = default;
-    // Set the led state based on the device state
     virtual void OnStateChanged() = 0;
-};
 
+    // Optional status hooks. Boards that do not need them keep the no-op defaults.
+    virtual void OnWifiLost() {}
+    virtual void OnServerLost() {}
+    virtual void OnProcessing(bool active) {}
+};
 
 class NoLed : public Led {
 public:
-    virtual void OnStateChanged() override {}
+    void OnStateChanged() override {}
 };
 
 #endif // _LED_H_
