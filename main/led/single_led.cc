@@ -217,13 +217,13 @@ void SingleLed::OnEffectTimer() {
 void SingleLed::OnWifiLost() {
     std::lock_guard<std::mutex> lock(mutex_);
     override_active_ = true;
-    SetFaultLocked(0xFF, 0x00, 0x00);  // #FF0000
+    SetFaultLocked(0xFF, 0x00, 0x00);  // logical #FF0000
 }
 
 void SingleLed::OnServerLost() {
     std::lock_guard<std::mutex> lock(mutex_);
     override_active_ = true;
-    SetFaultLocked(0xFF, 0xFF, 0x00);  // #FFFF00
+    SetFaultLocked(0xFF, 0xFF, 0x00);  // logical #FFFF00
 }
 
 void SingleLed::OnProcessing(bool active) {
