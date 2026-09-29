@@ -3,6 +3,7 @@
 #include "button.h"
 #include "config.h"
 #include "codecs/no_audio_codec.h"
+#include "display.h"
 
 #define TAG "TappyS3"
 
@@ -24,6 +25,14 @@ public:
 
             app.ToggleChatState();
         });
+    }
+
+    Display* GetDisplay() override {
+        // TAPPY uses esp32-eyes/U8g2 as the only OLED renderer.
+        // Keeping LVGL away from the same SSD1306 prevents two display
+        // drivers from fighting over the I2C bus.
+        static NoDisplay display;
+        return &display;
     }
 
     AudioCodec* GetAudioCodec() override {
