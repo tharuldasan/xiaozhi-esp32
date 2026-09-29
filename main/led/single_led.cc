@@ -147,65 +147,66 @@ void SingleLed::OnStateChanged() {
     auto& app = Application::GetInstance();
     const DeviceState state = app.GetDeviceState();
 
-    // This implementation deliberately leaves AI emotion separate from the
-    // LED. The LED reflects system/network/audio-processing state only.
+    // System status LED only. AI emotion is handled independently by TappyFace.
     switch (state) {
         case kDeviceStateStarting:
+            // Green breathing = boot/network initialization.
             SetColor(0, kMaxBrightness, 0);
-            StartContinuousBlink(700);       // startup / initializing
+            StartContinuousBlink(700);
             break;
 
         case kDeviceStateWifiConfiguring:
+            // Yellow breathing = Wi-Fi setup/configuration mode.
             SetColor(kMaxBrightness, kMaxBrightness, 0);
-            StartContinuousBlink(500);       // setup AP mode
+            StartContinuousBlink(500);
             break;
 
         case kDeviceStateConnecting:
         case kDeviceStateActivating:
+            // Green breathing = connecting to Wi-Fi/server.
             SetColor(0, kMaxBrightness, 0);
-            StartContinuousBlink(500);       // network / server connection
+            StartContinuousBlink(500);
             break;
 
         case kDeviceStateIdle:
-            // Ready: solid green, then dim after 10 seconds.
-            SetColor(0, kMaxBrightness, 0);
+            // Ready = green solid, then dim after 10 seconds.
+            SetColor(0, kReadyFullBrightness, 0);
             TurnOn();
-            // The existing state callback has no persistent delayed-event API,
-            // so use a one-shot timer to dim the ready LED after 10 seconds.
+            // This timer is intentionally one-shot; the timer callback below
+            // performs the ready-state dimming rather than blinking it.
             esp_timer_stop(blink_timer_);
-            esp_timer_start_once(blink_timer_, static_cast<uint64_t>(kReadyDimAfterMs) * 1000ULL);
+            esp_timer_start_once(
+                blink_timer_,
+                static_cast<uint64_t>(kReadyDimAfterMs) * 1000ULL);
             break;
 
         case kDeviceStateListening:
-            if (app.IsVoiceDetected()) {
-                // Keep blue while speech/VAD is active.
-                SetColor(0, 0, kMaxBrightness);
-            } else {
-                SetColor(0, 0, static_cast<uint8_t>(kMaxBrightness / 2));
-            }
-            // A steady state refresh is sufficient; VAD events call OnStateChanged.
-            TurnOn();
+            // Listening = blue. VAD refreshes the same blue state.
+            SetColor(0, 0, kMaxBrightness);
+            StartContinuousBlink(450);
             break;
 
         case kDeviceStateSpeaking:
         case kDeviceStateNotifying:
-            // White breathing while TTS is playing.
+            // TTS = white breathing.
             SetColor(kMaxBrightness, kMaxBrightness, kMaxBrightness);
             StartContinuousBlink(250);
             break;
 
         case kDeviceStateUpgrading:
+            // Fast green heartbeat during firmware update.
             SetColor(0, kMaxBrightness, 0);
             StartContinuousBlink(180);
             break;
 
         case kDeviceStateAudioTesting:
+            // Diagnostic mode.
             SetColor(kMaxBrightness, 0, kMaxBrightness);
             StartContinuousBlink(300);
             break;
 
         case kDeviceStateFatalError:
-            // Fatal / network failure indication.
+            // Error / lost connection fallback.
             SetColor(kMaxBrightness, 0, 0);
             TurnOn();
             break;
