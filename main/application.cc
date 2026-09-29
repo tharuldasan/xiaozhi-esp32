@@ -10,6 +10,7 @@
 #include "settings.h"
 #include "system_info.h"
 #include "text_glyph_payload.h"
+#include "tappy_face.h"
 #include "websocket_protocol.h"
 
 #include <driver/gpio.h>
@@ -64,6 +65,9 @@ void Application::Initialize() {
 
     // Setup the display
     auto display = board.GetDisplay();
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+    TappyFace::GetInstance().Initialize();
+#endif
     display->SetupUI();
     // Print board name/version info
     display->SetChatMessage("system", SystemInfo::GetUserAgent().c_str());
@@ -670,6 +674,9 @@ void Application::InitializeProtocol() {
         } else if (strcmp(type->valuestring, "llm") == 0) {
             auto emotion = cJSON_GetObjectItem(root, "emotion");
             if (cJSON_IsString(emotion)) {
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+                TappyFace::GetInstance().SetEmotion(emotion->valuestring);
+#endif
                 Schedule([display, emotion_str = std::string(emotion->valuestring)]() {
                     display->SetEmotion(emotion_str.c_str());
                 });
