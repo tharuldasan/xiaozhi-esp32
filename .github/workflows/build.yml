@@ -40,16 +40,16 @@ jobs:
 
           echo "Configuring TAPPY custom wake word: Hi Tappy"
           cat > build/tappy-custom-wakeword.defaults <<'EOF'
-CONFIG_USE_CUSTOM_WAKE_WORD=y
-CONFIG_USE_AFE_WAKE_WORD=n
-CONFIG_USE_ESP_WAKE_WORD=n
-CONFIG_WAKE_WORD_DISABLED=n
-CONFIG_CUSTOM_WAKE_WORD="hi tappy"
-CONFIG_CUSTOM_WAKE_WORD_DISPLAY="Hi Tappy"
-CONFIG_CUSTOM_WAKE_WORD_THRESHOLD=20
-CONFIG_SEND_WAKE_WORD_DATA=y
-CONFIG_USE_AUDIO_PROCESSOR=y
-EOF
+          CONFIG_USE_CUSTOM_WAKE_WORD=y
+          CONFIG_USE_AFE_WAKE_WORD=n
+          CONFIG_USE_ESP_WAKE_WORD=n
+          CONFIG_WAKE_WORD_DISABLED=n
+          CONFIG_CUSTOM_WAKE_WORD="hi tappy"
+          CONFIG_CUSTOM_WAKE_WORD_DISPLAY="Hi Tappy"
+          CONFIG_CUSTOM_WAKE_WORD_THRESHOLD=20
+          CONFIG_SEND_WAKE_WORD_DATA=y
+          CONFIG_USE_AUDIO_PROCESSOR=y
+          EOF
 
           export SDKCONFIG_DEFAULTS="sdkconfig.defaults;build/tappy-custom-wakeword.defaults"
           idf.py reconfigure
