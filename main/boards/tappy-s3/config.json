@@ -3,7 +3,17 @@
     "target": "esp32s3",
     "builds": [
         {
-            "name": "tappy-s3"
+            "name": "tappy-s3",
+            "sdkconfig_append": [
+                "CONFIG_USE_CUSTOM_WAKE_WORD=y",
+                "CONFIG_USE_AFE_WAKE_WORD=n",
+                "CONFIG_WAKE_WORD_DISABLED=n",
+                "CONFIG_CUSTOM_WAKE_WORD=\"hi tappy\"",
+                "CONFIG_CUSTOM_WAKE_WORD_DISPLAY=\"Hi Tappy\"",
+                "CONFIG_CUSTOM_WAKE_WORD_THRESHOLD=20",
+                "CONFIG_SEND_WAKE_WORD_DATA=y",
+                "CONFIG_USE_AUDIO_PROCESSOR=y"
+            ]
         }
     ]
 }
