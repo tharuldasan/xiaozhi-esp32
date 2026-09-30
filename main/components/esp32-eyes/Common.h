@@ -1,9 +1,11 @@
-#ifndef COMMON_h
-#define COMMON_h
+#ifndef _TAPPY_EYES_COMMON_H
+#define _TAPPY_EYES_COMMON_H
 
+#include <stdint.h>
 #include <u8g2.h>
-#include <U8g2lib.h>
+#include <u8x8.h>
+#include <u8g2_esp32.h>
 
-extern U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2;
+extern u8g2_t u8g2;
 
 #endif
