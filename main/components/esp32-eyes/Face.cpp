@@ -16,9 +16,12 @@ Face::Face(uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize)
   if (!display_initialized) {
     u8g2_esp32_i2c_ctx_t ctx = {
       .i2c_port = I2C_NUM_0,
-      .sda = GPIO_NUM_15,
-      .scl = GPIO_NUM_7,
-      .addr = 0x3C
+      .sda_pin = GPIO_NUM_15,
+      .scl_pin = GPIO_NUM_7,
+      .dev_addr_7bit = 0x3C,
+      .clk_hz = 400000,
+      .timeout_ms = 1000,
+      .reset_pin = U8G2_ESP32_PIN_UNUSED
     };
     u8g2_esp32_i2c_set_default_context(&ctx);
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(
