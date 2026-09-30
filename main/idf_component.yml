@@ -1,9 +1,10 @@
 ## IDF Component Manager Manifest File
 dependencies:
   nixy4/u8g2:
-    version: ^0.1.4
+    git: https://github.com/Nixy4/u8g2.git
+    version: main
     rules:
-    - if: target in [esp32, esp32s2, esp32s3, esp32c3, esp32c5, esp32c6, esp32h2, esp32p4, esp32s31]
+      - if: target in [esp32, esp32s2, esp32s3, esp32c3, esp32c5, esp32c6, esp32h2, esp32p4, esp32s31]
   waveshare/esp_lcd_sh8601: 1.0.2
   espressif/esp_lcd_co5300: ^2.1.0
   espressif/esp_lcd_ili9341: ^2.1.0
