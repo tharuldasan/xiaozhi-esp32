@@ -1340,6 +1340,30 @@ def _prepare_target(target: str, preview: bool) -> None:
         print(f"[INFO] Configuring target {target}.")
 
 
+def _patch_u8g2_idf6_requirements() -> None:
+    """Patch Nixy4/u8g2 for the ESP-IDF 6.x split driver components."""
+    cmake_path = Path("managed_components/nixy4__u8g2/CMakeLists.txt")
+    if not cmake_path.exists():
+        return
+
+    content = cmake_path.read_text(encoding="utf-8")
+    requirements = ["esp_driver_gpio", "esp_driver_i2c", "esp_driver_spi"]
+    if all(req in content for req in requirements):
+        return
+
+    updated = content
+    match = re.search(r"(?m)^([ \\t]*REQUIRES[ \\t]+[^\\n]*)$", updated)
+    if match:
+        line = match.group(1)
+        missing = [req for req in requirements if req not in line]
+        if missing:
+            updated = updated[:match.start(1)] + line + " " + " ".join(missing) + updated[match.end(1):]
+    else:
+        raise RuntimeError("Could not find REQUIRES in managed nixy4/u8g2/CMakeLists.txt")
+
+    cmake_path.write_text(updated, encoding="utf-8")
+    print("[INFO] Patched nixy4/u8g2 for ESP-IDF 6.x: " + ", ".join(requirements))
+
 def _configure_build(
     target: str,
     sdkconfig_append: list[str],
@@ -1597,7 +1621,10 @@ def build_board(
         _validate_configured_options(build_option_sdkconfig, "--build-options-json")
 
         # build.name is the compatibility-sensitive OTA-reported board identity.
+        # ESP-IDF 6.x split the legacy driver component into granular drivers.
+        _patch_u8g2_idf6_requirements()
         _emit_build_stage("compiling")
+        _run_idf("reconfigure", preview=preview)
         _run_idf("build", preview=preview)
 
         # merge-bin
