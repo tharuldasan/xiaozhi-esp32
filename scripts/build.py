@@ -1597,7 +1597,7 @@ def build_board(
 
         # build.name is the compatibility-sensitive OTA-reported board identity.
         # ESP-IDF 6.x split the legacy driver component into granular drivers.
-        _patch_u8g2_idf6_requirements()
+        
         _emit_build_stage("compiling")
         _run_idf("reconfigure", preview=preview)
         _run_idf("build", preview=preview)
