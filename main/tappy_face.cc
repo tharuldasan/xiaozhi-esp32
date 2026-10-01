@@ -7,6 +7,7 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 #include <esp_log.h>
+#include <driver/i2c_master.h>
 
 #include <cctype>
 #include <cstring>
@@ -77,6 +78,31 @@ void TappyFace::Initialize() {
     if (impl_->mutex == nullptr) {
         ESP_LOGE(TAG, "Failed to create face mutex");
         return;
+    }
+
+    // TAPPY owns I2C0 for the SSD1306. Initialize the ESP-IDF I2C master
+    // bus before U8g2 tries to reuse it. OLED wiring is fixed at SDA=15/SCL=7.
+    i2c_master_bus_handle_t bus = nullptr;
+    i2c_master_bus_config_t bus_config = {};
+    bus_config.i2c_port = I2C_NUM_0;
+    bus_config.sda_io_num = GPIO_NUM_15;
+    bus_config.scl_io_num = GPIO_NUM_7;
+    bus_config.clk_source = I2C_CLK_SRC_DEFAULT;
+    bus_config.glitch_ignore_cnt = 7;
+    bus_config.flags.enable_internal_pullup = true;
+
+    esp_err_t i2c_err = i2c_new_master_bus(&bus_config, &bus);
+    if (i2c_err != ESP_OK && i2c_err != ESP_ERR_INVALID_STATE) {
+        ESP_LOGE(TAG, "Failed to initialize OLED I2C bus: %s", esp_err_to_name(i2c_err));
+        vSemaphoreDelete(impl_->mutex);
+        impl_->mutex = nullptr;
+        return;
+    }
+
+    if (i2c_err == ESP_OK) {
+        ESP_LOGI(TAG, "OLED I2C0 initialized on SDA=15 SCL=7");
+    } else {
+        ESP_LOGI(TAG, "OLED I2C0 already initialized; reusing existing bus");
     }
 
     impl_->face = new Face(128, 64, 40);
