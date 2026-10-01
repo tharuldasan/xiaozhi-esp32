@@ -36,10 +36,11 @@ jobs:
           echo "       BUILDING TAPPY ESP32-S3"
           echo "======================================"
 
-          # Local ESP-SR WakeNet runs on the ESP32-S3; no cloud connection is
-          # required for wake-word detection. Use a supported built-in model
-          # until a genuinely trained "Hi Tappy" WakeNet model is available.
-          python scripts/build.py tappy-s3 --name tappy-s3 --language en-US --wake-word wn9_hilexin
+          # Disable ESP-SR WakeNet for the stability build. The serial log
+          # shows the firmware crashes immediately after loading srmodels,
+          # before activation completes. Wake-word support will be added back
+          # after the TAPPY audio path is stable.
+          python scripts/build.py tappy-s3 --name tappy-s3 --language en-US --wake-word disabled
 
           idf.py build
 
