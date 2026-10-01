@@ -1,6 +1,7 @@
 #include "Face.h"
 #include "Common.h"
 #include <esp_timer.h>
+#include <driver/i2c_master.h>
 
 static unsigned long now_now_millis() {
   return static_cast<unsigned long>(esp_timer_get_time() / 1000ULL);
@@ -11,19 +12,33 @@ u8g2_t u8g2;
 Face::Face(uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize)
     : LeftEye(*this), RightEye(*this), Blink(*this), Look(*this), Behavior(*this), Expression(*this) {
 
+  static u8g2_esp32_i2c_ctx_t ctx = {
+    .cfg = {
+      .i2c_port = I2C_NUM_0,
+      .sda_pin = DISPLAY_SDA_PIN,
+      .scl_pin = DISPLAY_SCL_PIN,
+      .clk_hz = 400000,
+      .dev_addr_7bit = 0x3C,
+      .timeout_ms = 1000,
+      .reset_pin = U8G2_ESP32_PIN_UNUSED
+    }
+  };
   static bool display_initialized = false;
+
   if (!display_initialized) {
-    u8g2_esp32_i2c_ctx_t ctx = {
-      .cfg = {
-        .i2c_port = 0,
-        .sda_pin = 15,
-        .scl_pin = 7,
-        .clk_hz = 400000,
-        .dev_addr_7bit = 0x3C,
-        .timeout_ms = 1000,
-        .reset_pin = U8G2_ESP32_PIN_UNUSED
-      }
-    };
+    // Reuse I2C0 when the board already created it; otherwise U8g2 will
+    // create it. We keep the OLED wiring fixed at SDA=15 / SCL=7.
+    i2c_master_bus_handle_t existing_bus = nullptr;
+    esp_err_t bus_err = i2c_master_get_bus_handle(I2C_NUM_0, &existing_bus);
+
+    if (bus_err == ESP_OK && existing_bus != nullptr) {
+      ctx.bus_handle = existing_bus;
+      ctx.initialized = 1;
+    } else {
+      ctx.bus_handle = nullptr;
+      ctx.initialized = 0;
+    }
+
     u8g2_esp32_i2c_set_default_context(&ctx);
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(
       &u8g2,
@@ -32,9 +47,11 @@ Face::Face(uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize)
       u8x8_gpio_and_delay_esp32_i2c
     );
     u8x8_SetI2CAddress(&u8g2.u8x8, 0x3C << 1);
-    u8g2_InitDisplay(&u8g2);
-    u8g2_SetPowerSave(&u8g2, 0);
-    display_initialized = true;
+
+    if (u8g2_InitDisplay(&u8g2) == 0) {
+      u8g2_SetPowerSave(&u8g2, 0);
+      display_initialized = true;
+    }
   }
 
   u8g2_ClearBuffer(&u8g2);
