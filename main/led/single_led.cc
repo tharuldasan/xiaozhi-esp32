@@ -11,11 +11,11 @@
 #define TAG "SingleLed"
 
 namespace {
-constexpr uint8_t kMaxBrightness = 20;
-constexpr uint8_t kReadyFullBrightness = 14;
-constexpr uint8_t kReadyDimBrightness = 2;
-constexpr uint8_t kFaultBrightness = 12;
-constexpr uint8_t kProcessingBrightness = 10;
+constexpr uint8_t kMaxBrightness = 255;
+constexpr uint8_t kReadyFullBrightness = 255;
+constexpr uint8_t kReadyDimBrightness = 35;
+constexpr uint8_t kFaultBrightness = 255;
+constexpr uint8_t kProcessingBrightness = 220;
 
 constexpr uint32_t kBreathePeriodMs = 1800;
 constexpr uint32_t kProcessingCycleMs = 600;
