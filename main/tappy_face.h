@@ -7,7 +7,8 @@ public:
     static TappyFace& GetInstance();
 
     void Initialize();
-    void SetEmotion(const char* emotion);
+    bool SetEmotion(const char* emotion);
+    static bool IsValidEmotion(const char* emotion);
 
 private:
     TappyFace() = default;
