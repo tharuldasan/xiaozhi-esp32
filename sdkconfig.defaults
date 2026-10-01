@@ -76,3 +76,5 @@ CONFIG_LV_USE_WIN=n
 
 CONFIG_LV_BUILD_EXAMPLES=n
 CONFIG_LV_BUILD_DEMOS=n
+# TAPPY: keep wake-word detection disabled until a custom/manual wake word is added.
+CONFIG_WAKE_WORD_DISABLED=y
