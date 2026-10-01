@@ -682,11 +682,18 @@ void Application::InitializeProtocol() {
             auto emotion = cJSON_GetObjectItem(root, "emotion");
             if (cJSON_IsString(emotion)) {
 #if CONFIG_BOARD_TYPE_TAPPY_S3
-                TappyFace::GetInstance().SetEmotion(emotion->valuestring);
-#endif
+                // Only accept the exact TAPPY face emotion set. Invalid LLM
+                // labels must never leak into the chat/display UI.
+                if (TappyFace::GetInstance().SetEmotion(emotion->valuestring)) {
+                    Schedule([display, emotion_str = std::string(emotion->valuestring)]() {
+                        display->SetEmotion(emotion_str.c_str());
+                    });
+                }
+#else
                 Schedule([display, emotion_str = std::string(emotion->valuestring)]() {
                     display->SetEmotion(emotion_str.c_str());
                 });
+#endif
             }
         } else if (strcmp(type->valuestring, "mcp") == 0) {
             auto payload = cJSON_GetObjectItem(root, "payload");
@@ -1019,6 +1026,15 @@ void Application::HandleStateChangedEvent() {
     const DeviceState old_state = previous_state;
     previous_state = new_state;
     clock_ticks_ = 0;
+
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+    // Return the face to Normal as soon as TAPPY finishes speaking.
+    // This applies whether the next state is idle or another listening cycle.
+    if (old_state == kDeviceStateSpeaking && new_state != kDeviceStateSpeaking) {
+        TappyFace::GetInstance().SetEmotion("Normal");
+    }
+#endif
+
     // Any state change invalidates a pending deferred listening start;
     // the Listening case below re-arms it when needed.
     pending_listening_start_ = false;
