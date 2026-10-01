@@ -1150,10 +1150,10 @@ void Application::ConfigureWakeWordForListening() {
 #endif
 }
 
-void Application::StartNotification(std::string audio_url, std::vector<NotifySubtitle> subtitles) {
+bool Application::StartNotification(std::string audio_url, std::vector<NotifySubtitle> subtitles) {
     if (GetDeviceState() != kDeviceStateIdle || notify_player_.IsBusy()) {
         ESP_LOGW(TAG, "Ignoring notify message while device is busy");
-        return;
+        return false;
     }
 
     auto& board = Board::GetInstance();
@@ -1192,6 +1192,21 @@ void Application::StartNotification(std::string audio_url, std::vector<NotifySub
 
     if (!started) {
         ESP_LOGE(TAG, "Failed to start notification playback");
+        StopNotification();
+        return false;
+    }
+    return true;
+}
+
+bool Application::PlayMusicUrl(const std::string& audio_url) {
+    if (audio_url.empty()) {
+        return false;
+    }
+    return StartNotification(audio_url, {});
+}
+
+void Application::StopMusic() {
+    if (GetDeviceState() == kDeviceStateNotifying) {
         StopNotification();
     }
 }
