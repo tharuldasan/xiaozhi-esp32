@@ -58,4 +58,6 @@ jobs:
           path: |
             build/merged-binary.bin
             build/*.bin
+            build/*.elf
+            build/*.map
           if-no-files-found: error
