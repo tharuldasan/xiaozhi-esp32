@@ -49,6 +49,31 @@ void McpServer::AddCommonTools() {
                 return board.GetDeviceStatusJson();
             });
 
+    // TAPPY music playback: reuse the existing HTTPS Ogg notification
+    // player so music goes through the same working I2S/MAX98357A path.
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+    AddTool(
+        "self.music.play_url",
+        "Play an Ogg audio track from a direct HTTP/HTTPS URL. The URL must point directly to an Ogg audio stream/file. Use this only for music the user is authorized to play.",
+        PropertyList({Property("url", kPropertyTypeString)}),
+        [](const PropertyList& properties) -> ReturnValue {
+            auto url = properties["url"].value<std::string>();
+            if (Application::GetInstance().PlayMusicUrl(url)) {
+                return true;
+            }
+            return false;
+        });
+
+    AddTool(
+        "self.music.stop",
+        "Stop the currently playing music track.",
+        PropertyList(),
+        [](const PropertyList& properties) -> ReturnValue {
+            Application::GetInstance().StopMusic();
+            return true;
+        });
+#endif
+
     AddTool("self.audio_speaker.set_volume",
             "Set the volume of the audio speaker. If the current volume is unknown, you must call "
             "`self.get_device_status` tool first and then call this tool.",
