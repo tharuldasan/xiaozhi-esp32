@@ -117,6 +117,8 @@ public:
     void SetAecMode(AecMode mode);
     AecMode GetAecMode() const { return aec_mode_; }
     void PlaySound(const std::string_view& sound);
+    bool PlayMusicUrl(const std::string& audio_url);
+    void StopMusic();
     AudioService& GetAudioService() { return audio_service_; }
     
     /**
@@ -169,7 +171,7 @@ private:
     void ContinueWakeWordInvoke(const std::string& wake_word);
     void StartListeningAudio();
     void ConfigureWakeWordForListening();
-    void StartNotification(std::string audio_url, std::vector<NotifySubtitle> subtitles);
+    bool StartNotification(std::string audio_url, std::vector<NotifySubtitle> subtitles);
     void StopNotification();
     void HandleNotificationFinished(uint32_t playback_id, bool success);
 
