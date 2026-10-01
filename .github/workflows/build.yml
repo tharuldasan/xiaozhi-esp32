@@ -36,23 +36,11 @@ jobs:
           echo "       BUILDING TAPPY ESP32-S3"
           echo "======================================"
 
-          python scripts/build.py tappy-s3 --name tappy-s3 --language en-US --wake-word disabled
+          # Local ESP-SR WakeNet runs on the ESP32-S3; no cloud connection is
+          # required for wake-word detection. Use a supported built-in model
+          # until a genuinely trained "Hi Tappy" WakeNet model is available.
+          python scripts/build.py tappy-s3 --name tappy-s3 --language en-US --wake-word wn9_hilexin
 
-          echo "Configuring TAPPY custom wake word: Hi Tappy"
-          cat > build/tappy-custom-wakeword.defaults <<'EOF'
-          CONFIG_USE_CUSTOM_WAKE_WORD=y
-          CONFIG_USE_AFE_WAKE_WORD=n
-          CONFIG_USE_ESP_WAKE_WORD=n
-          CONFIG_WAKE_WORD_DISABLED=n
-          CONFIG_CUSTOM_WAKE_WORD="hi tappy"
-          CONFIG_CUSTOM_WAKE_WORD_DISPLAY="Hi Tappy"
-          CONFIG_CUSTOM_WAKE_WORD_THRESHOLD=20
-          CONFIG_SEND_WAKE_WORD_DATA=y
-          CONFIG_USE_AUDIO_PROCESSOR=y
-          EOF
-
-          export SDKCONFIG_DEFAULTS="sdkconfig.defaults;build/tappy-custom-wakeword.defaults"
-          idf.py reconfigure
           idf.py build
 
       - name: Show build files
