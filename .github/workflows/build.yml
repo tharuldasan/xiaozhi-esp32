@@ -36,11 +36,9 @@ jobs:
           echo "       BUILDING TAPPY ESP32-S3"
           echo "======================================"
 
-          # Disable ESP-SR WakeNet for the stability build. The serial log
-          # shows the firmware crashes immediately after loading srmodels,
-          # before activation completes. Wake-word support will be added back
-          # after the TAPPY audio path is stable.
-          python scripts/build.py tappy-s3 --name tappy-s3 --language en-US --wake-word disabled
+          # Use the project's normal ESP32-S3 + PSRAM wake-word configuration.
+          # Do not override the wake-word choice here; Kconfig selects AFE/WakeNet.
+          python scripts/build.py tappy-s3 --name tappy-s3 --language en-US
 
           idf.py build
 
