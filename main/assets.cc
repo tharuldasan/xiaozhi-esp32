@@ -256,6 +256,15 @@ bool Assets::LvglStrategy::GetAssetData(Assets* assets, const std::string& name,
 }
 
 bool Assets::LvglStrategy::Apply(Assets* assets, bool refresh_display_theme) {
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+    // TAPPY uses esp32-eyes/U8g2 instead of the normal LVGL display.
+    // Still load srmodels from the assets partition, but do not enter the
+    // LVGL theme/font/emoji path because TAPPY deliberately has no LVGL
+    // display instance.
+    Assets::LoadSrmodelsFromIndex(assets);
+    return true;
+#endif
+
     void* ptr = nullptr;
     size_t size = 0;
     if (!assets->GetAssetData("index.json", ptr, size)) {
