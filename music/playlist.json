@@ -1,0 +1,10 @@
+{
+  "name": "TAPPY Music",
+  "format": "ogg",
+  "tracks": [
+    {
+      "title": "Example Track",
+      "url": "https://raw.githubusercontent.com/tharuldasan/xiaozhi-esp32/main/music/example.ogg"
+    }
+  ]
+}
