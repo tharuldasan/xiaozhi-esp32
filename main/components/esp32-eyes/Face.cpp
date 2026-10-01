@@ -1,11 +1,6 @@
 #include "Face.h"
 #include "Common.h"
-#include <esp_timer.h>
 #include <driver/i2c_master.h>
-
-static unsigned long now_now_millis() {
-  return static_cast<unsigned long>(esp_timer_get_time() / 1000ULL);
-}
 
 u8g2_t u8g2;
 
@@ -15,8 +10,8 @@ Face::Face(uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize)
   static u8g2_esp32_i2c_ctx_t ctx = {
     .cfg = {
       .i2c_port = I2C_NUM_0,
-      .sda_pin = DISPLAY_SDA_PIN,
-      .scl_pin = DISPLAY_SCL_PIN,
+      .sda_pin = 15,
+      .scl_pin = 7,
       .clk_hz = 400000,
       .dev_addr_7bit = 0x3C,
       .timeout_ms = 1000,
@@ -48,10 +43,9 @@ Face::Face(uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize)
     );
     u8x8_SetI2CAddress(&u8g2.u8x8, 0x3C << 1);
 
-    if (u8g2_InitDisplay(&u8g2) == 0) {
-      u8g2_SetPowerSave(&u8g2, 0);
-      display_initialized = true;
-    }
+    u8g2_InitDisplay(&u8g2);
+    u8g2_SetPowerSave(&u8g2, 0);
+    display_initialized = true;
   }
 
   u8g2_ClearBuffer(&u8g2);
