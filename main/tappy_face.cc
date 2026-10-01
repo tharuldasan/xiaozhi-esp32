@@ -21,6 +21,20 @@ public:
     TaskHandle_t task = nullptr;
     bool initialized = false;
 
+    static bool IsValidEmotion(const char* value) {
+        if (value == nullptr) return false;
+        static const char* const names[] = {
+            "Normal", "Angry", "Glee", "Happy", "Sad", "Worried",
+            "Focused", "Annoyed", "Surprised", "Skeptic", "Frustrated",
+            "Unimpressed", "Sleepy", "Suspicious", "Squint", "Furious",
+            "Scared", "Awe"
+        };
+        for (const char* name : names) {
+            if (strcasecmp(value, name) == 0) return true;
+        }
+        return false;
+    }
+
     static eEmotions ParseEmotion(const char* value) {
         if (value == nullptr) return Normal;
 
@@ -133,9 +147,14 @@ void TappyFace::Initialize() {
     ESP_LOGI(TAG, "TAPPY face initialized");
 }
 
-void TappyFace::SetEmotion(const char* emotion) {
+bool TappyFace::SetEmotion(const char* emotion) {
     if (impl_ == nullptr || !impl_->initialized || impl_->face == nullptr) {
-        return;
+        return false;
+    }
+
+    if (!Impl::IsValidEmotion(emotion)) {
+        ESP_LOGW(TAG, "Ignoring invalid AI emotion: %s", emotion ? emotion : "(null)");
+        return false;
     }
 
     const eEmotions parsed = Impl::ParseEmotion(emotion);
@@ -146,6 +165,11 @@ void TappyFace::SetEmotion(const char* emotion) {
     }
 
     ESP_LOGI(TAG, "AI emotion: %s", emotion ? emotion : "Normal");
+    return true;
+}
+
+bool TappyFace::IsValidEmotion(const char* emotion) {
+    return Impl::IsValidEmotion(emotion);
 }
 
 void TappyFace::FaceTask(void* arg) {
