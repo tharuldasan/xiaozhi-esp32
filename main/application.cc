@@ -1015,6 +1015,9 @@ void Application::ContinueWakeWordInvoke(const std::string& wake_word) {
 
 void Application::HandleStateChangedEvent() {
     DeviceState new_state = state_machine_.GetState();
+    static DeviceState previous_state = kDeviceStateUnknown;
+    const DeviceState old_state = previous_state;
+    previous_state = new_state;
     clock_ticks_ = 0;
     // Any state change invalidates a pending deferred listening start;
     // the Listening case below re-arms it when needed.
@@ -1038,6 +1041,12 @@ void Application::HandleStateChangedEvent() {
                     "neutral");  // Then set emotion (wechat mode checks child count)
             }
             audio_service_.EnableVoiceProcessing(false);
+            // Short feedback when listening is closed. Play it before
+            // re-enabling wake-word detection so the detector does not hear
+            // the effect as microphone input.
+            if (old_state == kDeviceStateListening) {
+                audio_service_.PlaySound(Lang::Sounds::OGG_VIBRATION);
+            }
             audio_service_.EnableWakeWordDetection(true);
             break;
         case kDeviceStateConnecting:
@@ -1048,6 +1057,11 @@ void Application::HandleStateChangedEvent() {
         case kDeviceStateListening:
             display->SetStatus(Lang::Strings::LISTENING);
             display->SetEmotion("neutral");
+
+            // Always give a short, distinct listening-start sound.
+            // StartListeningAudio() plays it after decoder reset and the
+            // auto-stop path waits for playback to drain before opening the mic.
+            play_popup_on_listening_ = true;
 
             // Make sure the audio processor is running
             if (play_popup_on_listening_ || !audio_service_.IsAudioProcessorRunning()) {
