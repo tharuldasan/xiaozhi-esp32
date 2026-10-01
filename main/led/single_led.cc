@@ -252,7 +252,9 @@ void SingleLed::OnStateChanged() {
             SetBreatheLocked(0xFF, 0xFF, 0x00, 2000);
             break;
         case kDeviceStateIdle:
-            SetSolidLocked(0x00, 0xFF, 0x00, kReadyFullBrightness, true);
+            // Normal idle is always a breathing effect; it reaches full brightness
+            // at the peak but never remains solid.
+            SetBreatheLocked(0x00, 0xFF, 0x00, kBreathePeriodMs);
             break;
         case kDeviceStateListening:
             SetBreatheLocked(0x00, 0x00, 0xFF, kBreathePeriodMs);
