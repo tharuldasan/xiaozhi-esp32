@@ -116,6 +116,106 @@ void McpServer::AddCommonTools() {
     }
 #endif
 
+
+    // TAPPY time, weather and persistent alarm tools.
+    auto& tappy_time = TappyTimeManager::GetInstance();
+    auto& tappy_weather = TappyWeatherService::GetInstance();
+    auto& tappy_alarm = TappyAlarmManager::GetInstance();
+
+    AddTool("self.time.get",
+            "Get the current internet-synchronized local date and time. Use this before "
+            "creating an alarm for today or tomorrow so the alarm gets an exact calendar date.",
+            PropertyList(), [&tappy_time](const PropertyList&) -> ReturnValue {
+                if (!tappy_time.IsValid()) {
+                    return std::string("Time is not synchronized with the internet yet.");
+                }
+                return tappy_time.GetLocalDateString() + " " + tappy_time.GetLocalTimeString();
+            });
+
+    AddTool("self.weather.get",
+            "Get current weather from Open-Meteo. If location is empty, use the saved weather "
+            "location. You may provide a city or place name such as Colombo or Kandy.",
+            PropertyList({Property("location", kPropertyTypeString, "")}),
+            [&tappy_weather](const PropertyList& properties) -> ReturnValue {
+                return tappy_weather.GetCurrent(properties["location"].value<std::string>());
+            });
+
+    AddTool("self.weather.set_location",
+            "Set the saved weather location using Open-Meteo geocoding. Use this when the user "
+            "asks to change where weather is reported.",
+            PropertyList({Property("location", kPropertyTypeString)}),
+            [&tappy_weather](const PropertyList& properties) -> ReturnValue {
+                return tappy_weather.SetLocation(properties["location"].value<std::string>());
+            });
+
+    AddTool("self.alarm.set",
+            "Create a one-shot persistent alarm for an exact calendar date. IMPORTANT: use 24-hour "
+            "time. For today/tomorrow, call self.time.get first and convert the relative day into "
+            "an exact date. Example: 6 PM means hour=18, minute=0. The alarm survives reboot and "
+            "is automatically deleted after it fires.",
+            PropertyList({
+                Property("year", kPropertyTypeInteger, 2024, 2099),
+                Property("month", kPropertyTypeInteger, 1, 12),
+                Property("day", kPropertyTypeInteger, 1, 31),
+                Property("hour", kPropertyTypeInteger, 0, 23),
+                Property("minute", kPropertyTypeInteger, 0, 59),
+                Property("label", kPropertyTypeString, "").SetMaxLength(48),
+            }),
+            [&tappy_alarm](const PropertyList& properties) -> ReturnValue {
+                return tappy_alarm.SetAlarm(
+                    properties["year"].value<int>(),
+                    properties["month"].value<int>(),
+                    properties["day"].value<int>(),
+                    properties["hour"].value<int>(),
+                    properties["minute"].value<int>(),
+                    properties["label"].value<std::string>());
+            });
+
+    AddTool("self.alarm.set_relative",
+            "Create a one-shot persistent alarm relative to today. day_offset=0 means today, "
+            "1 means tomorrow, 2 means the day after tomorrow. Use 24-hour time. The alarm "
+            "survives reboot and is automatically deleted after it fires.",
+            PropertyList({
+                Property("day_offset", kPropertyTypeInteger, 0, 3650),
+                Property("hour", kPropertyTypeInteger, 0, 23),
+                Property("minute", kPropertyTypeInteger, 0, 59),
+                Property("label", kPropertyTypeString, "").SetMaxLength(48),
+            }),
+            [&tappy_alarm, &tappy_time](const PropertyList& properties) -> ReturnValue {
+                struct tm local{};
+                if (!tappy_time.GetLocalTime(local)) {
+                    return std::string("ERROR: internet time is not synchronized yet");
+                }
+
+                time_t now = tappy_time.Now();
+                now += static_cast<time_t>(properties["day_offset"].value<int>()) * 86400;
+                localtime_r(&now, &local);
+
+                return tappy_alarm.SetAlarm(
+                    local.tm_year + 1900,
+                    local.tm_mon + 1,
+                    local.tm_mday,
+                    properties["hour"].value<int>(),
+                    properties["minute"].value<int>(),
+                    properties["label"].value<std::string>());
+            });
+
+    AddTool("self.alarm.list",
+            "List all currently saved persistent one-shot alarms.",
+            PropertyList(), [&tappy_alarm](const PropertyList&) -> ReturnValue {
+                return tappy_alarm.ListAlarms();
+            });
+
+    AddTool("self.alarm.cancel",
+            "Cancel one saved alarm by its ID. Use self.alarm.list first if the ID is unknown.",
+            PropertyList({Property("id", kPropertyTypeInteger, 1, 2147483647)}),
+            [&tappy_alarm](const PropertyList& properties) -> ReturnValue {
+                if (tappy_alarm.CancelAlarm(properties["id"].value<int>())) {
+                    return std::string("Alarm cancelled.");
+                }
+                return std::string("ERROR: alarm ID not found");
+            });
+
     // Restore the original tools list to the end of the tools list
     tools_.insert(tools_.end(), std::make_move_iterator(original_tools.begin()),
                   std::make_move_iterator(original_tools.end()));
