@@ -46,14 +46,10 @@ void TappyTimeManager::Initialize() {
     esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
     config.start = false;
 
-    // Detect the public-IP location first. IP geolocation is approximate, but it gives
-    // TAPPY the network's city/timezone instead of assuming Colombo.
-    DetectLocation();
-
     esp_err_t err = esp_netif_sntp_init(&config);
     if (err == ESP_OK || err == ESP_ERR_INVALID_STATE) {
         initialized_ = true;
-        ESP_LOGI(TAG, "NTP initialized; timezone UTC+05:30");
+        ESP_LOGI(TAG, "NTP initialized; timezone will be set after network location detection");
     } else {
         ESP_LOGE(TAG, "Failed to initialize NTP: %s", esp_err_to_name(err));
     }
@@ -130,7 +126,9 @@ void TappyTimeManager::StartSync() {
         return;
     }
 
-    // Re-resolve IP location after the network is fully connected.
+    // Resolve IP location only after the network/IP stack is fully ready.
+    // Calling HTTP before the network is initialized causes lwIP
+    // "tcpip_send_msg_wait_sem: Invalid mbox" assertions.
     DetectLocation();
 
     esp_err_t err = esp_netif_sntp_start();
