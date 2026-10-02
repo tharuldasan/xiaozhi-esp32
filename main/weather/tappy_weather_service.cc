@@ -2,6 +2,7 @@
 
 #include "board.h"
 #include "settings.h"
+#include "tappy_time_manager.h"
 
 #include <cJSON.h>
 #include <esp_log.h>
@@ -22,9 +23,18 @@ TappyWeatherService& TappyWeatherService::GetInstance() {
 void TappyWeatherService::Initialize() {
     Settings settings("tappy_weather", true);
     if (settings.GetString("location").empty()) {
-        settings.SetString("location", kDefaultLocation);
-        settings.SetString("latitude", std::to_string(kDefaultLatitude));
-        settings.SetString("longitude", std::to_string(kDefaultLongitude));
+        auto& time_manager = TappyTimeManager::GetInstance();
+        const std::string detected = time_manager.GetLocation();
+        if (!detected.empty() && detected != "Unknown location") {
+            settings.SetString("location", detected);
+            settings.SetString("latitude", std::to_string(time_manager.GetLatitude()));
+            settings.SetString("longitude", std::to_string(time_manager.GetLongitude()));
+            ESP_LOGI(TAG, "Using detected IP location for weather: %s", detected.c_str());
+        } else {
+            settings.SetString("location", kDefaultLocation);
+            settings.SetString("latitude", std::to_string(kDefaultLatitude));
+            settings.SetString("longitude", std::to_string(kDefaultLongitude));
+        }
     }
 }
 
