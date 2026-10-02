@@ -152,6 +152,10 @@ void Application::Initialize() {
                 break;
             }
             case NetworkEvent::Connected: {
+                TappyTimeManager::GetInstance().StartSync();
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+                TappyWeatherService::GetInstance().Initialize();
+#endif
                 std::string msg = Lang::Strings::CONNECTED_TO;
                 msg += data;
                 display->ShowNotification(msg.c_str(), 30000);
