@@ -369,8 +369,6 @@ void Application::HandleActivationDoneEvent() {
     SystemInfo::PrintHeapStats();
     SetDeviceState(kDeviceStateIdle);
 
-    has_server_time_ = ota_->HasServerTime();
-
     // Protocol start may have already raised MAIN_EVENT_ERROR. Do not replace
     // that alert with the "ready" UI/sound — the main loop can process both
     // events back-to-back because the activation task is lower priority.
