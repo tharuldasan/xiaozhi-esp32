@@ -22,7 +22,9 @@ TappyWeatherService& TappyWeatherService::GetInstance() {
 
 void TappyWeatherService::Initialize() {
     Settings settings("tappy_weather", true);
-    if (settings.GetString("location").empty()) {
+    const bool manual_location = settings.GetInt("manual_location", 0) != 0;
+
+    if (!manual_location) {
         auto& time_manager = TappyTimeManager::GetInstance();
         const std::string detected = time_manager.GetLocation();
         if (!detected.empty() && detected != "Unknown location") {
@@ -30,12 +32,16 @@ void TappyWeatherService::Initialize() {
             settings.SetString("latitude", std::to_string(time_manager.GetLatitude()));
             settings.SetString("longitude", std::to_string(time_manager.GetLongitude()));
             ESP_LOGI(TAG, "Using detected IP location for weather: %s", detected.c_str());
-        } else {
-            settings.SetString("location", kDefaultLocation);
-            settings.SetString("latitude", std::to_string(kDefaultLatitude));
-            settings.SetString("longitude", std::to_string(kDefaultLongitude));
+            return;
         }
     }
+
+    if (settings.GetString("location").empty()) {
+        settings.SetString("location", kDefaultLocation);
+        settings.SetString("latitude", std::to_string(kDefaultLatitude));
+        settings.SetString("longitude", std::to_string(kDefaultLongitude));
+    }
+}
 }
 
 std::string TappyWeatherService::GetLocation() const {
@@ -128,6 +134,7 @@ std::string TappyWeatherService::SetLocation(const std::string& location) {
     settings.SetString("location", display_name);
     settings.SetString("latitude", std::to_string(latitude->valuedouble));
     settings.SetString("longitude", std::to_string(longitude->valuedouble));
+    settings.SetInt("manual_location", 1);
 
     cJSON_Delete(root);
     return "Weather location saved as " + display_name;
