@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <ctime>
 #include <esp_log.h>
+#include <utility>
 #include <cJSON.h>
 
 #define TAG "TappyAlarm"
@@ -252,18 +253,23 @@ void TappyAlarmManager::Tick() {
             it = alarms_.erase(it);
             changed = true;
 
-            ESP_LOGI(TAG, "Alarm #%ld fired: %s", static_cast<long>(alarm.id),
-                     FormatAlarm(alarm).c_str());
-
             if (trigger_callback_) {
                 trigger_callback_(alarm);
             }
+
+            ESP_LOGI(TAG, "Alarm #%ld fired: %s", static_cast<long>(alarm.id),
+                     FormatAlarm(alarm).c_str());
+
         } else {
             ++it;
         }
     }
 
     if (changed) {
+        // Persist removals before playing the alarm so a reboot during the alert
+        // cannot resurrect an already-fired one-shot alarm.
         Save();
+        // Trigger after persistence; the alarm is already gone from the in-memory list.
+        // Fired alarms are intentionally one-shot.
     }
 }
