@@ -81,7 +81,7 @@ bool TappyTimeManager::DetectLocation() {
 
     std::string location;
     if (cJSON_IsString(city)) location = city->valuestring;
-    if (cJSON_IsString(region) && !region->valuestring[0] == '\0') {
+    if (cJSON_IsString(region) && region->valuestring[0] != '\0') {
         if (!location.empty()) location += ", ";
         location += region->valuestring;
     }
