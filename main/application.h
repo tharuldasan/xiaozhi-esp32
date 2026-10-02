@@ -21,6 +21,10 @@
 #include "device_state_machine.h"
 #include "notify/notify_player.h"
 
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+#include "alarm/tappy_alarm_manager.h"
+#endif
+
 // Main event bits
 #define MAIN_EVENT_SCHEDULE             (1 << 0)
 #define MAIN_EVENT_SEND_AUDIO           (1 << 1)
