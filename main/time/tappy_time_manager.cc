@@ -21,7 +21,7 @@ void TappyTimeManager::Initialize() {
     tzset();
 
     esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
-    config.start = true;
+    config.start = false;
 
     esp_err_t err = esp_netif_sntp_init(&config);
     if (err == ESP_OK || err == ESP_ERR_INVALID_STATE) {
