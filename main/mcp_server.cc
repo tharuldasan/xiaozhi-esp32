@@ -120,6 +120,7 @@ void McpServer::AddCommonTools() {
 #endif
 
 
+#if CONFIG_BOARD_TYPE_TAPPY_S3
     // TAPPY time, weather and persistent alarm tools.
     auto& tappy_time = TappyTimeManager::GetInstance();
     auto& tappy_weather = TappyWeatherService::GetInstance();
@@ -218,6 +219,8 @@ void McpServer::AddCommonTools() {
                 }
                 return std::string("ERROR: alarm ID not found");
             });
+
+#endif
 
     // Restore the original tools list to the end of the tools list
     tools_.insert(tools_.end(), std::make_move_iterator(original_tools.begin()),
