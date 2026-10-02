@@ -18,6 +18,9 @@
 #include "lvgl_image.h"
 #include "lvgl_theme.h"
 #include "settings.h"
+#include "tappy_time_manager.h"
+#include "tappy_alarm_manager.h"
+#include "tappy_weather_service.h"
 
 #define TAG "MCP"
 
