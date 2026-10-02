@@ -42,6 +42,9 @@ set(SOURCES "audio/audio_codec.cc"
             "assets.cc"
             "main.cc"
             "tappy_face.cc"
+            "time/tappy_time_manager.cc"
+            "alarm/tappy_alarm_manager.cc"
+            "weather/tappy_weather_service.cc"
             "components/esp32-eyes/AsyncTimer.cpp"
             "components/esp32-eyes/BlinkAssistant.cpp"
             "components/esp32-eyes/Eye.cpp"
@@ -55,7 +58,7 @@ set(SOURCES "audio/audio_codec.cc"
             "components/esp32-eyes/LookAssistant.cpp"
             )
 
-set(INCLUDE_DIRS "." "components/esp32-eyes" "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "audio/demuxer" "protocols")
+set(INCLUDE_DIRS "." "time" "alarm" "weather" "components/esp32-eyes" "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "audio/demuxer" "protocols")
 
 # Add board common files
 list(APPEND SOURCES
