@@ -190,31 +190,6 @@ NetworkResult<> Ota::CheckVersion() {
         ESP_LOGI(TAG, "No websocket section found!");
     }
 
-    has_server_time_ = false;
-    cJSON *server_time = cJSON_GetObjectItem(root, "server_time");
-    if (cJSON_IsObject(server_time)) {
-        cJSON *timestamp = cJSON_GetObjectItem(server_time, "timestamp");
-        cJSON *timezone_offset = cJSON_GetObjectItem(server_time, "timezone_offset");
-        
-        if (cJSON_IsNumber(timestamp)) {
-            // 设置系统时间
-            struct timeval tv;
-            double ts = timestamp->valuedouble;
-            
-            // 如果有时区偏移，计算本地时间
-            if (cJSON_IsNumber(timezone_offset)) {
-                ts += (timezone_offset->valueint * 60 * 1000); // 转换分钟为毫秒
-            }
-            
-            tv.tv_sec = (time_t)(ts / 1000);  // 转换毫秒为秒
-            tv.tv_usec = (suseconds_t)((long long)ts % 1000) * 1000;  // 剩余的毫秒转换为微秒
-            settimeofday(&tv, NULL);
-            has_server_time_ = true;
-        }
-    } else {
-        ESP_LOGW(TAG, "No server_time section found!");
-    }
-
     has_new_version_ = false;
     cJSON *firmware = cJSON_GetObjectItem(root, "firmware");
     if (cJSON_IsObject(firmware)) {
