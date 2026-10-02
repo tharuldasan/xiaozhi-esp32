@@ -42,7 +42,6 @@ void TappyWeatherService::Initialize() {
         settings.SetString("longitude", std::to_string(kDefaultLongitude));
     }
 }
-}
 
 std::string TappyWeatherService::GetLocation() const {
     Settings settings("tappy_weather", false);
