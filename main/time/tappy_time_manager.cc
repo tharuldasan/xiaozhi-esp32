@@ -40,8 +40,10 @@ void TappyTimeManager::Initialize() {
     setenv("TZ", "IST-5:30", 1);
     tzset();
 
-    esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(
-        2, ESP_SNTP_SERVER_LIST("pool.ntp.org", "time.google.com"));
+    // Keep a single configured server because this project build has
+    // CONFIG_LWIP_SNTP_MAX_SERVERS=1. The server is started only after Wi-Fi
+    // has an IP address.
+    esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
     config.start = false;
 
     // Detect the public-IP location first. IP geolocation is approximate, but it gives
