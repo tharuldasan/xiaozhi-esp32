@@ -253,6 +253,9 @@ void TappyAlarmManager::Tick() {
             it = alarms_.erase(it);
             changed = true;
 
+            // Persist this deletion before ringing it.
+            Save();
+
             if (trigger_callback_) {
                 trigger_callback_(alarm);
             }
