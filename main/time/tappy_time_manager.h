@@ -10,6 +10,10 @@ public:
 
     void Initialize();
     void StartSync();
+    bool DetectLocation();
+    std::string GetLocation() const;
+    double GetLatitude() const;
+    double GetLongitude() const;
     bool IsValid() const;
     time_t Now() const;
 
