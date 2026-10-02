@@ -69,7 +69,7 @@ std::string TappyTimeManager::GetLocalTimeString() const {
     }
 
     char buffer[32];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %I:%M:%S %p", &local);
+    strftime(buffer, sizeof(buffer), "%I:%M:%S %p", &local);
     return buffer;
 }
 
