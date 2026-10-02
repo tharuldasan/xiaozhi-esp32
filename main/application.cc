@@ -11,6 +11,9 @@
 #include "system_info.h"
 #include "text_glyph_payload.h"
 #include "tappy_face.h"
+#include "tappy_time_manager.h"
+#include "tappy_alarm_manager.h"
+#include "tappy_weather_service.h"
 #include "websocket_protocol.h"
 
 #include <driver/gpio.h>
@@ -62,6 +65,21 @@ bool Application::SetDeviceState(DeviceState state) { return state_machine_.Tran
 void Application::Initialize() {
     auto& board = Board::GetInstance();
     SetDeviceState(kDeviceStateStarting);
+
+    // TAPPY uses Internet NTP time, Open-Meteo weather, and persistent NVS alarms.
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+    TappyTimeManager::GetInstance().Initialize();
+    TappyAlarmManager::GetInstance().Initialize();
+    TappyWeatherService::GetInstance().Initialize();
+    TappyAlarmManager::GetInstance().SetTriggerCallback([](const TappyAlarm& alarm) {
+        auto& app = Application::GetInstance();
+        std::string message = "Alarm #" + std::to_string(alarm.id) + " is ringing";
+        if (!alarm.label.empty()) {
+            message += ": " + alarm.label;
+        }
+        app.Alert("ALARM", message.c_str(), "Surprised", Lang::Sounds::OGG_VIBRATION);
+    });
+#endif
 
     // Setup the display
     auto display = board.GetDisplay();
@@ -279,6 +297,9 @@ void Application::Run() {
 
         if (bits & MAIN_EVENT_CLOCK_TICK) {
             clock_ticks_++;
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+            TappyAlarmManager::GetInstance().Tick();
+#endif
             auto display = Board::GetInstance().GetDisplay();
             display->UpdateStatusBar();
 
@@ -295,6 +316,9 @@ void Application::Run() {
 void Application::HandleNetworkConnectedEvent() {
     ESP_LOGI(TAG, "Network connected");
     Board::GetInstance().GetLed()->OnStateChanged();
+#if CONFIG_BOARD_TYPE_TAPPY_S3
+    TappyTimeManager::GetInstance().StartSync();
+#endif
     auto state = GetDeviceState();
 
     if (state == kDeviceStateStarting || state == kDeviceStateWifiConfiguring) {
