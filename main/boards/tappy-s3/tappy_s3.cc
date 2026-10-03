@@ -20,6 +20,7 @@ public:
         boot_button_.OnClick([this]() {
             auto& alarm = TappyAlarmManager::GetInstance();
             if (alarm.IsRinging()) {
+                Application::GetInstance().StopAlarmSound();
                 alarm.DismissRinging();
                 return;
             }
