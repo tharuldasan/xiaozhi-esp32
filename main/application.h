@@ -91,6 +91,8 @@ public:
      */
     void Alert(const char* status, const char* message, const char* emotion = "", const std::string_view& sound = "");
     void DismissAlert();
+    void PlayAlarmSound(const std::string_view& sound);
+    void StopAlarmSound();
 
     void AbortSpeaking(AbortReason reason);
 
