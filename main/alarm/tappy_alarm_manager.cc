@@ -47,7 +47,9 @@ bool MakeTimestamp(int year, int month, int day, int hour, int minute, int64_t& 
         return false;
     }
 
-    timestamp = static_cast<int64_t>(result);
+    // TAPPY's displayed clock is already corrected to UTC+06:00.
+    // Compensate only the alarm timestamp by 30 minutes; do not change the clock.
+    timestamp = static_cast<int64_t>(result) - 30 * 60;
     return true;
 }
 
