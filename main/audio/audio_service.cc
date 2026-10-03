@@ -370,8 +370,16 @@ void AudioService::AudioOutputTask() {
         audio_queue_cv_.notify_all();
         lock.unlock();
 
-        if (notify_drained && callbacks_.on_playback_drained) {
-            callbacks_.on_playback_drained();
+        if (notify_drained) {
+            // An alarm must be truly continuous: as soon as the current alarm
+            // cue drains, queue the next copy immediately. This avoids the
+            // two-second gaps caused by replaying the cue from the alarm timer.
+            if (alarm_loop_active_.load()) {
+                PlaySound(alarm_loop_sound_);
+            }
+            if (callbacks_.on_playback_drained) {
+                callbacks_.on_playback_drained();
+            }
         }
     }
 
@@ -769,15 +777,25 @@ void AudioService::PlayAlarmSound(const std::string_view& ogg) {
         alarm_previous_volume_ = codec_->output_volume();
         alarm_volume_boosted_ = true;
     }
+
+    alarm_loop_sound_ = ogg;
+    alarm_loop_active_.store(true);
+
     // Alarm cue is intentionally loud enough to wake the user.
     codec_->SetOutputVolume(100);
     PlaySound(ogg);
 }
 
 void AudioService::StopAlarmSound() {
+    // Stop the loop first so the output task cannot queue another cue while
+    // the current playback is being flushed.
+    alarm_loop_active_.store(false);
+    alarm_loop_sound_ = std::string_view();
+
     if (!alarm_volume_boosted_) {
         return;
     }
+
     ResetDecoder();
     if (codec_ != nullptr && alarm_previous_volume_ >= 0) {
         codec_->SetOutputVolume(alarm_previous_volume_);
