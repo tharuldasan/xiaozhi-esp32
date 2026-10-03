@@ -154,6 +154,8 @@ private:
     AudioCodec* codec_ = nullptr;
     int alarm_previous_volume_ = -1;
     bool alarm_volume_boosted_ = false;
+    std::atomic<bool> alarm_loop_active_{false};
+    std::string_view alarm_loop_sound_;
     AudioServiceCallbacks callbacks_;
     std::unique_ptr<AudioEngine> audio_engine_;
     std::unique_ptr<AudioDebugger> audio_debugger_;
