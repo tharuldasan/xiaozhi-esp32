@@ -761,6 +761,11 @@ void AudioService::EnableDeviceAec(bool enable) {
 
 void AudioService::SetCallbacks(AudioServiceCallbacks& callbacks) { callbacks_ = callbacks; }
 
+void AudioService::PlayAlarmSound(const std::string_view& ogg) {
+    // Queue the alarm cue; the caller repeats it while the alarm is latched.
+    PlaySound(ogg);
+}
+
 void AudioService::PlaySound(const std::string_view& ogg) {
     if (!codec_->output_enabled()) {
         esp_timer_stop(audio_power_timer_);
