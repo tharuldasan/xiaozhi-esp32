@@ -240,53 +240,50 @@ int TappyAlarmManager::Count() const {
 }
 
 void TappyAlarmManager::Tick() {
-    if (!initialized_ || !TappyTimeManager::GetInstance().IsValid() || alarms_.empty()) {
+    if (!initialized_ || !TappyTimeManager::GetInstance().IsValid()) {
+        return;
+    }
+
+    // A fired alarm stays latched until BOOT dismisses it. Re-play the short
+    // alarm cue every two seconds while it is ringing.
+    if (ringing_) {
+        if (++ring_tick_ >= 2) {
+            ring_tick_ = 0;
+            if (trigger_callback_) {
+                trigger_callback_(ringing_alarm_);
+            }
+        }
+    }
+
+    if (alarms_.empty()) {
         return;
     }
 
     const int64_t now = static_cast<int64_t>(TappyTimeManager::GetInstance().Now());
-    bool changed = false;
 
     for (auto it = alarms_.begin(); it != alarms_.end();) {
-        if (it->timestamp <= now) {
-            TappyAlarm alarm = *it;
-            it = alarms_.erase(it);
-            changed = true;
-
-            // Persist this deletion before ringing it.
-            Save();
-
-            ringing_ = true;
-            ringing_alarm_ = alarm;
-            ring_tick_ = 0;
-            ringing_ = true;
-            ringing_alarm_ = alarm;
-            ringing_ = true;
-            if (trigger_callback_) {
-                trigger_callback_(alarm);
-            }
-
-            ESP_LOGI(TAG, "Alarm #%ld fired: %s", static_cast<long>(alarm.id),
-                     FormatAlarm(alarm).c_str());
-
-        } else {
+        if (it->timestamp > now) {
             ++it;
+            continue;
         }
-    }
 
-    if (changed) {
-        // Persist removals before playing the alarm so a reboot during the alert
-        // cannot resurrect an already-fired one-shot alarm.
+        TappyAlarm alarm = *it;
+        it = alarms_.erase(it);
+
+        // Persist the one-shot removal before starting the alert so a reboot
+        // cannot fire the same scheduled alarm a second time.
         Save();
-        }
-}
 
-void TappyAlarmManager::DismissRinging() {
-    if (!ringing_) return;
-    ringing_ = false;
-    ring_tick_ = 0;
-    ringing_alarm_ = TappyAlarm{};
-    ESP_LOGI(TAG, "Alarm dismissed by BOOT button");
+        ringing_ = true;
+        ringing_alarm_ = alarm;
+        ring_tick_ = 0;
+        if (trigger_callback_) {
+            trigger_callback_(alarm);
+        }
+
+        ESP_LOGI(TAG, "Alarm #%ld fired: %s", static_cast<long>(alarm.id),
+                 FormatAlarm(alarm).c_str());
+    }
 }
 
 void TappyAlarmManager::DismissRinging() {
@@ -294,10 +291,7 @@ void TappyAlarmManager::DismissRinging() {
         return;
     }
     ringing_ = false;
-    ESP_LOGI(TAG, "Alarm dismissed");
-}
-
-void TappyAlarmManager::DismissRinging() {
-    ringing_ = false;
-    ESP_LOGI(TAG, "Alarm dismissed by user");
+    ring_tick_ = 0;
+    ringing_alarm_ = TappyAlarm{};
+    ESP_LOGI(TAG, "Alarm dismissed by BOOT button");
 }
