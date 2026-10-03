@@ -18,7 +18,7 @@ void TappyTimeManager::Initialize() {
     // Sri Lanka is UTC+05:30.  POSIX TZ signs are reversed, so IST-5:30
     // means UTC + 5 hours 30 minutes.  Do not replace this with an IP-derived
     // IANA name: the embedded C library expects a POSIX TZ rule here.
-    setenv("TZ", "IST-5:30", 1);
+    setenv("TZ", "IST-6:00", 1);
     tzset();
 
     esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
@@ -26,7 +26,7 @@ void TappyTimeManager::Initialize() {
     esp_err_t err = esp_netif_sntp_init(&config);
     if (err == ESP_OK || err == ESP_ERR_INVALID_STATE) {
         initialized_ = true;
-        ESP_LOGI(TAG, "NTP initialized for Sri Lanka UTC+05:30");
+        ESP_LOGI(TAG, "NTP initialized for TAPPY corrected time UTC+06:00");
     } else {
         ESP_LOGE(TAG, "Failed to initialize NTP: %s", esp_err_to_name(err));
     }
