@@ -3,28 +3,9 @@
 #include <cstdlib>
 #include <esp_log.h>
 #include <esp_netif_sntp.h>
-#include <cJSON.h>
-#include "board.h"
 #include "settings.h"
 
 #define TAG "TappyTime"
-
-namespace {
-std::string HttpGet(const std::string& url) {
-    auto http = Board::GetInstance().GetNetwork()->CreateHttp(0);
-    http->SetHeader("Accept", "application/json");
-    auto opened = http->Open("GET", url);
-    if (!opened) return {};
-    auto status = http->GetStatusCode();
-    if (!status || *status != 200) {
-        http->Close();
-        return {};
-    }
-    std::string body = http->ReadAll();
-    http->Close();
-    return body;
-}
-}
 
 TappyTimeManager& TappyTimeManager::GetInstance() {
     static TappyTimeManager instance;
@@ -32,104 +13,45 @@ TappyTimeManager& TappyTimeManager::GetInstance() {
 }
 
 void TappyTimeManager::Initialize() {
-    if (initialized_) {
-        return;
-    }
+    if (initialized_) return;
 
-    // Sri Lanka Standard Time: UTC+05:30, no daylight-saving changes.
+    // Sri Lanka is UTC+05:30.  POSIX TZ signs are reversed, so IST-5:30
+    // means UTC + 5 hours 30 minutes.  Do not replace this with an IP-derived
+    // IANA name: the embedded C library expects a POSIX TZ rule here.
     setenv("TZ", "IST-5:30", 1);
     tzset();
 
-    // Keep a single configured server because this project build has
-    // CONFIG_LWIP_SNTP_MAX_SERVERS=1. The server is started only after Wi-Fi
-    // has an IP address.
     esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
     config.start = false;
-
     esp_err_t err = esp_netif_sntp_init(&config);
     if (err == ESP_OK || err == ESP_ERR_INVALID_STATE) {
         initialized_ = true;
-        ESP_LOGI(TAG, "NTP initialized; timezone will be set after network location detection");
+        ESP_LOGI(TAG, "NTP initialized for Sri Lanka UTC+05:30");
     } else {
         ESP_LOGE(TAG, "Failed to initialize NTP: %s", esp_err_to_name(err));
     }
 }
 
+// Kept for API compatibility. Time no longer depends on IP geolocation.
 bool TappyTimeManager::DetectLocation() {
-    std::string body = HttpGet("https://ipapi.co/json/");
-    if (body.empty()) {
-        ESP_LOGW(TAG, "IP geolocation request failed");
-        return false;
-    }
-
-    cJSON* root = cJSON_Parse(body.c_str());
-    if (!root) return false;
-
-    cJSON* city = cJSON_GetObjectItem(root, "city");
-    cJSON* region = cJSON_GetObjectItem(root, "region");
-    cJSON* country = cJSON_GetObjectItem(root, "country_name");
-    cJSON* timezone = cJSON_GetObjectItem(root, "timezone");
-    cJSON* latitude = cJSON_GetObjectItem(root, "latitude");
-    cJSON* longitude = cJSON_GetObjectItem(root, "longitude");
-
-    if (!cJSON_IsString(timezone) || !cJSON_IsNumber(latitude) || !cJSON_IsNumber(longitude)) {
-        cJSON_Delete(root);
-        return false;
-    }
-
-    std::string location;
-    if (cJSON_IsString(city)) location = city->valuestring;
-    if (cJSON_IsString(region) && region->valuestring[0] != '\0') {
-        if (!location.empty()) location += ", ";
-        location += region->valuestring;
-    }
-    if (cJSON_IsString(country)) {
-        if (!location.empty()) location += ", ";
-        location += country->valuestring;
-    }
-
-    Settings settings("tappy_time", true);
-    settings.SetString("location", location);
-    settings.SetString("timezone", timezone->valuestring);
-    settings.SetString("latitude", std::to_string(latitude->valuedouble));
-    settings.SetString("longitude", std::to_string(longitude->valuedouble));
-
-    setenv("TZ", timezone->valuestring, 1);
-    tzset();
-
-    ESP_LOGI(TAG, "IP location: %s | timezone: %s | %.5f, %.5f",
-             location.c_str(), timezone->valuestring,
-             latitude->valuedouble, longitude->valuedouble);
-
-    cJSON_Delete(root);
     return true;
 }
 
 std::string TappyTimeManager::GetLocation() const {
-    Settings settings("tappy_time", false);
-    return settings.GetString("location", "Unknown location");
+    return "Kalutara, Sri Lanka";
 }
 
 double TappyTimeManager::GetLatitude() const {
-    Settings settings("tappy_time", false);
-    return std::stod(settings.GetString("latitude", "6.927079"));
+    return 6.5854;
 }
 
 double TappyTimeManager::GetLongitude() const {
-    Settings settings("tappy_time", false);
-    return std::stod(settings.GetString("longitude", "79.861244"));
+    return 79.9607;
 }
 
 void TappyTimeManager::StartSync() {
-    if (!initialized_) {
-        Initialize();
-        return;
-    }
-
-    // Resolve IP location only after the network/IP stack is fully ready.
-    // Calling HTTP before the network is initialized causes lwIP
-    // "tcpip_send_msg_wait_sem: Invalid mbox" assertions.
-    DetectLocation();
+    if (!initialized_) Initialize();
+    if (!initialized_) return;
 
     esp_err_t err = esp_netif_sntp_start();
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
@@ -138,7 +60,7 @@ void TappyTimeManager::StartSync() {
 }
 
 bool TappyTimeManager::IsValid() const {
-    return Now() >= 1704067200; // 2024-01-01 UTC
+    return Now() >= 1704067200;
 }
 
 time_t TappyTimeManager::Now() const {
@@ -146,10 +68,7 @@ time_t TappyTimeManager::Now() const {
 }
 
 bool TappyTimeManager::GetLocalTime(struct tm& out) const {
-    if (!IsValid()) {
-        return false;
-    }
-
+    if (!IsValid()) return false;
     time_t now = Now();
     localtime_r(&now, &out);
     return true;
@@ -157,10 +76,7 @@ bool TappyTimeManager::GetLocalTime(struct tm& out) const {
 
 std::string TappyTimeManager::GetLocalTimeString() const {
     struct tm local{};
-    if (!GetLocalTime(local)) {
-        return "time not synchronized";
-    }
-
+    if (!GetLocalTime(local)) return "time not synchronized";
     char buffer[32];
     strftime(buffer, sizeof(buffer), "%I:%M:%S %p", &local);
     return buffer;
@@ -168,10 +84,7 @@ std::string TappyTimeManager::GetLocalTimeString() const {
 
 std::string TappyTimeManager::GetLocalDateString() const {
     struct tm local{};
-    if (!GetLocalTime(local)) {
-        return "date not synchronized";
-    }
-
+    if (!GetLocalTime(local)) return "date not synchronized";
     char buffer[32];
     strftime(buffer, sizeof(buffer), "%Y-%m-%d", &local);
     return buffer;
