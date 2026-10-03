@@ -77,7 +77,10 @@ void Application::Initialize() {
         if (!alarm.label.empty()) {
             message += ": " + alarm.label;
         }
-        app.Alert("ALARM", message.c_str(), "Surprised", Lang::Sounds::OGG_VIBRATION);
+        // Keep the visual alert, but use the dedicated alarm path so the
+        // cue is boosted and can be repeated until BOOT dismisses it.
+        app.Alert("ALARM", message.c_str(), "Surprised", "");
+        app.PlayAlarmSound(Lang::Sounds::OGG_VIBRATION);
     });
 #endif
 
@@ -1436,6 +1439,14 @@ void Application::SetAecMode(AecMode mode) {
 }
 
 void Application::PlaySound(const std::string_view& sound) { audio_service_.PlaySound(sound); }
+
+void Application::PlayAlarmSound(const std::string_view& sound) {
+    audio_service_.PlayAlarmSound(sound);
+}
+
+void Application::StopAlarmSound() {
+    audio_service_.StopAlarmSound();
+}
 
 void Application::ResetProtocol() {
     Schedule([this]() {
