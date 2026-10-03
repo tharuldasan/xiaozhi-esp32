@@ -247,17 +247,9 @@ void TappyAlarmManager::Tick() {
         return;
     }
 
-    // A fired alarm stays latched until BOOT dismisses it. Re-play the short
-    // alarm cue every two seconds while it is ringing.
-    if (ringing_) {
-        if (++ring_tick_ >= 2) {
-            ring_tick_ = 0;
-            if (trigger_callback_) {
-                trigger_callback_(ringing_alarm_);
-            }
-        }
-    }
-
+    // A fired alarm stays latched until BOOT dismisses it. AudioService now
+    // loops the alarm cue continuously, so the alarm callback only needs to
+    // run once when the alarm first fires.
     if (alarms_.empty()) {
         return;
     }
