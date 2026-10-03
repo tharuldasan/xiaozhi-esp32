@@ -29,9 +29,6 @@ public:
     bool IsRinging() const { return ringing_; }
     void DismissRinging();
 
-    bool IsRinging() const { return ringing_; }
-    void DismissRinging();
-
 private:
     TappyAlarmManager() = default;
     bool Save();
