@@ -26,6 +26,8 @@ public:
     bool CancelAlarm(int32_t id);
     std::string ListAlarms() const;
     int Count() const;
+    bool IsRinging() const { return ringing_; }
+    void DismissRinging();
 
     bool IsRinging() const { return ringing_; }
     void DismissRinging();
