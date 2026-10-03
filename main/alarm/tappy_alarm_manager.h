@@ -17,7 +17,6 @@ public:
     using TriggerCallback = std::function<void(const TappyAlarm&)>;
 
     static TappyAlarmManager& GetInstance();
-
     void Initialize();
     void SetTriggerCallback(TriggerCallback callback);
     void Tick();
@@ -28,9 +27,11 @@ public:
     std::string ListAlarms() const;
     int Count() const;
 
+    bool IsRinging() const { return ringing_; }
+    void DismissRinging();
+
 private:
     TappyAlarmManager() = default;
-
     bool Save();
     bool Load();
     int32_t NextId();
@@ -39,6 +40,9 @@ private:
     TriggerCallback trigger_callback_;
     int32_t next_id_ = 1;
     bool initialized_ = false;
+    bool ringing_ = false;
+    TappyAlarm ringing_alarm_;
+    int ring_tick_ = 0;
 };
 
 #endif
