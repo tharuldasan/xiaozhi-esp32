@@ -256,6 +256,9 @@ void TappyAlarmManager::Tick() {
             // Persist this deletion before ringing it.
             Save();
 
+            ringing_ = true;
+            ringing_alarm_ = alarm;
+            ring_tick_ = 0;
             if (trigger_callback_) {
                 trigger_callback_(alarm);
             }
@@ -275,4 +278,12 @@ void TappyAlarmManager::Tick() {
         // Trigger after persistence; the alarm is already gone from the in-memory list.
         // Fired alarms are intentionally one-shot.
     }
+}
+
+void TappyAlarmManager::DismissRinging() {
+    if (!ringing_) return;
+    ringing_ = false;
+    ring_tick_ = 0;
+    ringing_alarm_ = TappyAlarm{};
+    ESP_LOGI(TAG, "Alarm dismissed by BOOT button");
 }
