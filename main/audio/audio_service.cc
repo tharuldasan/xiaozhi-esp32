@@ -762,8 +762,28 @@ void AudioService::EnableDeviceAec(bool enable) {
 void AudioService::SetCallbacks(AudioServiceCallbacks& callbacks) { callbacks_ = callbacks; }
 
 void AudioService::PlayAlarmSound(const std::string_view& ogg) {
-    // Queue the alarm cue; the caller repeats it while the alarm is latched.
+    if (codec_ == nullptr) {
+        return;
+    }
+    if (!alarm_volume_boosted_) {
+        alarm_previous_volume_ = codec_->output_volume();
+        alarm_volume_boosted_ = true;
+    }
+    // Alarm cue is intentionally loud enough to wake the user.
+    codec_->SetOutputVolume(100);
     PlaySound(ogg);
+}
+
+void AudioService::StopAlarmSound() {
+    if (!alarm_volume_boosted_) {
+        return;
+    }
+    ResetDecoder();
+    if (codec_ != nullptr && alarm_previous_volume_ >= 0) {
+        codec_->SetOutputVolume(alarm_previous_volume_);
+    }
+    alarm_previous_volume_ = -1;
+    alarm_volume_boosted_ = false;
 }
 
 void AudioService::PlaySound(const std::string_view& ogg) {
