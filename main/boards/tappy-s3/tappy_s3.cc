@@ -4,6 +4,7 @@
 #include "config.h"
 #include "codecs/no_audio_codec.h"
 #include "display.h"
+#include "alarm/tappy_alarm_manager.h"
 #include "led/single_led.h"
 
 #define TAG "TappyS3"
@@ -17,6 +18,11 @@ public:
         : boot_button_(BOOT_BUTTON_GPIO) {
 
         boot_button_.OnClick([this]() {
+            auto& alarm = TappyAlarmManager::GetInstance();
+            if (alarm.IsRinging()) {
+                alarm.DismissRinging();
+                return;
+            }
             auto& app = Application::GetInstance();
 
             if (app.GetDeviceState() == kDeviceStateStarting) {
