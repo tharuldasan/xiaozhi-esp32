@@ -261,6 +261,7 @@ void TappyAlarmManager::Tick() {
             ring_tick_ = 0;
             ringing_ = true;
             ringing_alarm_ = alarm;
+            ringing_ = true;
             if (trigger_callback_) {
                 trigger_callback_(alarm);
             }
@@ -294,4 +295,9 @@ void TappyAlarmManager::DismissRinging() {
     }
     ringing_ = false;
     ESP_LOGI(TAG, "Alarm dismissed");
+}
+
+void TappyAlarmManager::DismissRinging() {
+    ringing_ = false;
+    ESP_LOGI(TAG, "Alarm dismissed by user");
 }
