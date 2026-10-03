@@ -80,7 +80,9 @@ void Application::Initialize() {
         // Keep the visual alert, but use the dedicated alarm path so the
         // cue is boosted and can be repeated until BOOT dismisses it.
         app.Alert("ALARM", message.c_str(), "Surprised", "");
-        app.PlayAlarmSound(Lang::Sounds::OGG_VIBRATION);
+        // Use the bundled melodic success chime instead of the vibration cue.
+        // AudioService boosts alarm playback to 100% volume.
+        app.PlayAlarmSound(Lang::Sounds::OGG_SUCCESS);
     });
 #endif
 
